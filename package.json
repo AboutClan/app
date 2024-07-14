@@ -10,8 +10,16 @@
     "test": "jest"
   },
   "dependencies": {
+    "@notifee/react-native": "^7.8.2",
+    "@react-native-community/netinfo": "^11.3.2",
+    "@react-native-firebase/analytics": "^20.1.0",
+    "@react-native-firebase/app": "^20.1.0",
+    "@react-native-firebase/messaging": "^20.1.0",
     "react": "18.2.0",
     "react-native": "0.74.2",
+    "react-native-device-info": "^11.1.0",
+    "react-native-haptic-feedback": "^2.2.0",
+    "react-native-splash-screen": "^3.3.0",
     "react-native-webview": "^13.10.4"
   },
   "devDependencies": {
