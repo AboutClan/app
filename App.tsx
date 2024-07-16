@@ -15,7 +15,7 @@ import {getDeviceId, getModel, getUniqueId} from 'react-native-device-info';
 
 type Nullable<TData> = TData | null;
 
-const uri = 'https://studyabout.herokuapp.com/login?from=app';
+const uri = 'https://studyabout.herokuapp.com/login';
 
 async function requestUserPermission() {
   const authStatus = await messaging().requestPermission();
