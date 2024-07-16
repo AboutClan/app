@@ -17,8 +17,7 @@ import type {ShouldStartLoadRequest} from 'react-native-webview/lib/WebViewTypes
 type Nullable<TData> = TData | null;
 
 const agentSelector = 'about_club_app';
-const uri = 'http://localhost:3000/login';
-// const uri = 'https://studyabout.herokuapp.com/login';
+const uri = 'https://studyabout.herokuapp.com';
 
 async function requestUserPermission() {
   const authStatus = await messaging().requestPermission();
@@ -67,16 +66,19 @@ function App(): React.JSX.Element {
           break;
       }
     } catch (error) {
-      console.warn('Error in receiving data');
+      console.warn('error in receiving data');
     }
   }, []);
-  const onShouldStartLoadWithRequest = (request: ShouldStartLoadRequest) => {
-    if (request.url.includes('open.kakao.com')) {
-      Linking.openURL(request.url);
-      return false;
-    }
-    return true;
-  };
+  const onShouldStartLoadWithRequest = useCallback(
+    (request: ShouldStartLoadRequest) => {
+      if (request.url.includes('open.kakao.com')) {
+        Linking.openURL(request.url);
+        return false;
+      }
+      return true;
+    },
+    [],
+  );
 
   useEffect(() => {
     requestUserPermission();

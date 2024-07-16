@@ -7,10 +7,7 @@
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "jest",
-    "clean-install": "rm -rf node_modules && npm install",
-    "ios-clean": "cd ios && rm -rf Pods Podfile.lock && rm -rf ~/Library/Developer/Xcode/DerivgedData && pod deintegrate && pod setup",
-    "android-clean": "cd android && ./gradlew clean"
+    "test": "jest"
   },
   "dependencies": {
     "@react-native-community/netinfo": "^9.5.0",
