@@ -12,7 +12,7 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		5B7B87E58D7153DC1974C0D6 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B2639E26D109027EB5337737 /* PrivacyInfo.xcprivacy */; };
-		680391EA2C461A02006BA53F /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = 680391E92C461A02006BA53F /* main.jsbundle */; };
+		680391EC2C464B17006BA53F /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = 680391EB2C464B17006BA53F /* main.jsbundle */; };
 		7DD4971252E911E4A0DDD394 /* libPods-About-AboutTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2E05C76C3C86D04B642304DF /* libPods-About-AboutTests.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		F25D42222F9AD1AEA7C66F34 /* libPods-About.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 45A592DBF9BA87A8C20D2747 /* libPods-About.a */; };
@@ -43,7 +43,7 @@
 		2EC1B3D8D53B2DBC84BB3798 /* Pods-About.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-About.release.xcconfig"; path = "Target Support Files/Pods-About/Pods-About.release.xcconfig"; sourceTree = "<group>"; };
 		4366E71B31A5D9F604DFBD1E /* Pods-About-AboutTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-About-AboutTests.debug.xcconfig"; path = "Target Support Files/Pods-About-AboutTests/Pods-About-AboutTests.debug.xcconfig"; sourceTree = "<group>"; };
 		45A592DBF9BA87A8C20D2747 /* libPods-About.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-About.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		680391E92C461A02006BA53F /* main.jsbundle */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
+		680391EB2C464B17006BA53F /* main.jsbundle */ = {isa = PBXFileReference; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = About/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		B2639E26D109027EB5337737 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = About/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		C1E4DD462588796AFC272806 /* Pods-About.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-About.debug.xcconfig"; path = "Target Support Files/Pods-About/Pods-About.debug.xcconfig"; sourceTree = "<group>"; };
@@ -91,7 +91,6 @@
 		13B07FAE1A68108700A75B9A /* About */ = {
 			isa = PBXGroup;
 			children = (
-				680391E92C461A02006BA53F /* main.jsbundle */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -124,6 +123,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				680391EB2C464B17006BA53F /* main.jsbundle */,
 				13B07FAE1A68108700A75B9A /* About */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* AboutTests */,
@@ -250,10 +250,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				680391EC2C464B17006BA53F /* main.jsbundle in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				5B7B87E58D7153DC1974C0D6 /* PrivacyInfo.xcprivacy in Resources */,
-				680391EA2C461A02006BA53F /* main.jsbundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
