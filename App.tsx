@@ -12,6 +12,7 @@ import messaging from '@react-native-firebase/messaging';
 import NetInfo from '@react-native-community/netinfo';
 import SplashScreen from 'react-native-splash-screen';
 import {getDeviceId, getModel, getUniqueId} from 'react-native-device-info';
+import type {ShouldStartLoadRequest} from 'react-native-webview/lib/WebViewTypes';
 
 type Nullable<TData> = TData | null;
 
@@ -67,6 +68,13 @@ function App(): React.JSX.Element {
       console.warn('Error in receiving data');
     }
   }, []);
+  const onShouldStartLoadWithRequest = (request: ShouldStartLoadRequest) => {
+    if (request.url.includes('pf.kakao.com')) {
+      Linking.openURL(request.url);
+      return false;
+    }
+    return true;
+  };
 
   useEffect(() => {
     requestUserPermission();
@@ -92,6 +100,7 @@ function App(): React.JSX.Element {
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
         onMessage={onGetMessage}
+        onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
       />
     </SafeAreaView>
   );
