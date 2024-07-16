@@ -69,7 +69,7 @@ function App(): React.JSX.Element {
     }
   }, []);
   const onShouldStartLoadWithRequest = (request: ShouldStartLoadRequest) => {
-    if (request.url.includes('pf.kakao.com')) {
+    if (request.url.includes('open.kakao.com')) {
       Linking.openURL(request.url);
       return false;
     }
