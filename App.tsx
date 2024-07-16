@@ -16,7 +16,9 @@ import type {ShouldStartLoadRequest} from 'react-native-webview/lib/WebViewTypes
 
 type Nullable<TData> = TData | null;
 
-const uri = 'https://studyabout.herokuapp.com/login';
+const agentSelector = 'about_club_app';
+const uri = 'http://localhost:3000/login';
+// const uri = 'https://studyabout.herokuapp.com/login';
 
 async function requestUserPermission() {
   const authStatus = await messaging().requestPermission();
@@ -96,7 +98,8 @@ function App(): React.JSX.Element {
         source={{uri}}
         bounces={false}
         ref={webviewRef}
-        webviewDebuggingEnabled
+        userAgent={agentSelector}
+        webviewDebuggingEnabled={true}
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
         onMessage={onGetMessage}
