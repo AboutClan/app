@@ -67,7 +67,9 @@ PushNotification.createChannel(
     vibrate: true,
   },
   (created: boolean) =>
-    console.log(`createChannel ggulmo returned '${created}'`),
+    console.log(
+      `createChannel ${pushNotificationAllSelector} returned '${created}'`,
+    ),
 );
 
 async function requestUserPermission() {
