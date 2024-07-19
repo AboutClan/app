@@ -7,17 +7,68 @@ import {
   Vibration,
 } from 'react-native';
 import {WebView, type WebViewMessageEvent} from 'react-native-webview';
+import firebase from '@react-native-firebase/app';
 import HapticFeedback from 'react-native-haptic-feedback';
 import messaging from '@react-native-firebase/messaging';
+import PushNotification from 'react-native-push-notification';
+import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import NetInfo from '@react-native-community/netinfo';
 import SplashScreen from 'react-native-splash-screen';
 import {getDeviceId, getModel, getUniqueId} from 'react-native-device-info';
 import type {ShouldStartLoadRequest} from 'react-native-webview/lib/WebViewTypes';
+import {firebaseConfig} from './config';
 
 type Nullable<TData> = TData | null;
 
 const agentSelector = 'about_club_app';
+const pushNotificationAllSelector = 'about_club_app_push_notification_all';
 const uri = 'https://studyabout.herokuapp.com';
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
+messaging().setBackgroundMessageHandler(async remoteMessage => {
+  console.log('Message handled in the background!', remoteMessage);
+});
+
+PushNotification.configure({
+  onRegister: function (token) {
+    console.log('TOKEN:', token);
+  },
+
+  onNotification: function (notification) {
+    if (notification.userInteraction) {
+      console.log('notification:', notification);
+    }
+
+    notification.finish(PushNotificationIOS.FetchResult.NoData);
+  },
+
+  onRegistrationError: function (err: Error) {
+    console.error(err.message, err);
+  },
+
+  permissions: {
+    alert: true,
+    badge: true,
+    sound: true,
+  },
+  popInitialNotification: true,
+  requestPermissions: false,
+});
+PushNotification.createChannel(
+  {
+    channelId: pushNotificationAllSelector,
+    channelName: '앱 전반',
+    channelDescription: '앱 실행하는 알림',
+    soundName: 'default',
+    importance: 4,
+    vibrate: true,
+  },
+  (created: boolean) =>
+    console.log(`createChannel ggulmo returned '${created}'`),
+);
 
 async function requestUserPermission() {
   const authStatus = await messaging().requestPermission();
