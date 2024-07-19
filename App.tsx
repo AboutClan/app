@@ -7,9 +7,9 @@ import {
   Vibration,
 } from 'react-native';
 import {WebView, type WebViewMessageEvent} from 'react-native-webview';
-import firebase from '@react-native-firebase/app';
 import HapticFeedback from 'react-native-haptic-feedback';
 import messaging from '@react-native-firebase/messaging';
+import firebase from '@react-native-firebase/app';
 import PushNotification from 'react-native-push-notification';
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import NetInfo from '@react-native-community/netinfo';
@@ -85,6 +85,7 @@ async function requestUserPermission() {
 
 function App(): React.JSX.Element {
   const webviewRef = useRef<Nullable<WebView>>(null);
+
   const onGetMessage = useCallback(async (event: WebViewMessageEvent) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
@@ -94,8 +95,12 @@ function App(): React.JSX.Element {
           const deviceId =
             Platform.OS === 'android' ? getModel() : getDeviceId(); // https://gist.github.com/adamawolf/3048717
           const uniqueId = getUniqueId();
-          const fcmToken = await messaging().getToken();
-          console.log(deviceId, uniqueId, fcmToken);
+          // const fcmToken = await messaging().getToken();
+          console.log(
+            deviceId,
+            uniqueId,
+            // fcmToken
+          );
           break;
         case 'callPhone':
           Linking.openURL(`tel:${data.number}`);
@@ -122,6 +127,7 @@ function App(): React.JSX.Element {
       console.warn('error in receiving data');
     }
   }, []);
+
   const onShouldStartLoadWithRequest = useCallback(
     (request: ShouldStartLoadRequest) => {
       if (request.url.includes('open.kakao.com')) {
