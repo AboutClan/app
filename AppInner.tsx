@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from 'react-native';
 
+import Share from 'react-native-share';
 import messaging from '@react-native-firebase/messaging';
 
 import HapticFeedback from 'react-native-haptic-feedback';
@@ -40,6 +41,17 @@ const AppInner = () => {
               platform,
             }),
           );
+          break;
+        case 'share':
+          (async () => {
+            try {
+              await Share.open({
+                url: data.link,
+              });
+            } catch (err) {
+              console.log(err);
+            }
+          })();
           break;
         case 'callPhone':
           Linking.openURL(`tel:${data.number}`);
