@@ -1,28 +1,17 @@
-import React, {useEffect, useRef, useCallback} from 'react';
-import {
-  Platform,
-  SafeAreaView,
-  StyleSheet,
-  Linking,
-  Vibration,
-} from 'react-native';
-import {WebView, type WebViewMessageEvent} from 'react-native-webview';
-import HapticFeedback from 'react-native-haptic-feedback';
-import messaging from '@react-native-firebase/messaging';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import firebase from '@react-native-firebase/app';
+import messaging from '@react-native-firebase/messaging';
 import PushNotification from 'react-native-push-notification';
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
+
 import NetInfo from '@react-native-community/netinfo';
 import SplashScreen from 'react-native-splash-screen';
-import {getDeviceId, getModel, getUniqueId} from 'react-native-device-info';
-import type {ShouldStartLoadRequest} from 'react-native-webview/lib/WebViewTypes';
-import {firebaseConfig} from './config';
 
-type Nullable<TData> = TData | null;
-
-const agentSelector = 'about_club_app';
-const pushNotificationAllSelector = 'about_club_app_push_notification_all';
-const uri = 'https://studyabout.herokuapp.com';
+import AppInner from './AppInner';
+import {firebaseConfig} from './src/constants/firebase';
+import {PUSH_NOTIFICATION_SELECTORS} from './src/constants/app';
 
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
@@ -59,7 +48,7 @@ PushNotification.configure({
 });
 PushNotification.createChannel(
   {
-    channelId: pushNotificationAllSelector,
+    channelId: PUSH_NOTIFICATION_SELECTORS.ALL,
     channelName: '앱 전반',
     channelDescription: '앱 실행하는 알림',
     soundName: 'default',
@@ -68,83 +57,18 @@ PushNotification.createChannel(
   },
   (created: boolean) =>
     console.log(
-      `createChannel ${pushNotificationAllSelector} returned '${created}'`,
+      `createChannel ${PUSH_NOTIFICATION_SELECTORS.ALL} returned '${created}'`,
     ),
 );
 
-async function requestUserPermission() {
-  const authStatus = await messaging().requestPermission();
-  const enabled =
-    authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-    authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-
-  if (enabled) {
-    console.log('Authorization status:', authStatus);
-  }
-}
-
 function App(): React.JSX.Element {
-  const webviewRef = useRef<Nullable<WebView>>(null);
-
-  const onGetMessage = useCallback(async (event: WebViewMessageEvent) => {
-    try {
-      const data = JSON.parse(event.nativeEvent.data);
-
-      switch (data.type) {
-        case 'getDeviceInfo':
-          const deviceId =
-            Platform.OS === 'android' ? getModel() : getDeviceId(); // https://gist.github.com/adamawolf/3048717
-          const uniqueId = getUniqueId();
-          // const fcmToken = await messaging().getToken();
-          console.log(
-            deviceId,
-            uniqueId,
-            // fcmToken
-          );
-          break;
-        case 'callPhone':
-          Linking.openURL(`tel:${data.number}`);
-          break;
-        case 'sendTextMessage':
-          Linking.openURL(`sms:${data.number}`);
-          break;
-        case 'openExternalLink':
-          Linking.openURL(data.link);
-          break;
-        case 'haptic':
-          HapticFeedback.trigger('impactLight', {
-            enableVibrateFallback: true,
-            ignoreAndroidSystemSettings: false,
-          });
-          break;
-        case 'vibrate':
-          Vibration.vibrate();
-          break;
-        default:
-          break;
-      }
-    } catch (error) {
-      console.warn('error in receiving data');
-    }
-  }, []);
-
-  const onShouldStartLoadWithRequest = useCallback(
-    (request: ShouldStartLoadRequest) => {
-      if (request.url.includes('open.kakao.com')) {
-        Linking.openURL(request.url);
-        return false;
-      }
-      return true;
-    },
-    [],
-  );
+  const [isOffline, setIsOffline] = useState(false);
 
   useEffect(() => {
-    requestUserPermission();
-
     NetInfo.fetch().then(state => {
       if (!state.isConnected) {
-        console.log("user's internet is offline");
+        console.log('user internet is offline');
+        setIsOffline(true);
       }
     });
 
@@ -153,27 +77,11 @@ function App(): React.JSX.Element {
     }, 1000);
   }, []);
 
-  return (
-    <SafeAreaView style={styles.safeAreaView}>
-      <WebView
-        source={{uri}}
-        bounces={false}
-        ref={webviewRef}
-        userAgent={agentSelector}
-        webviewDebuggingEnabled={true}
-        showsVerticalScrollIndicator={false}
-        showsHorizontalScrollIndicator={false}
-        onMessage={onGetMessage}
-        onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-      />
-    </SafeAreaView>
-  );
-}
+  if (isOffline) {
+    return <View />;
+  }
 
-const styles = StyleSheet.create({
-  safeAreaView: {
-    flex: 1,
-  },
-});
+  return <AppInner />;
+}
 
 export default App;
