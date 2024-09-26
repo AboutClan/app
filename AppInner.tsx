@@ -1,83 +1,55 @@
-import React, {useCallback, useRef} from 'react';
-import {
-  Platform,
-  Linking,
-  Vibration,
-  SafeAreaView,
-  StyleSheet,
-} from 'react-native';
-
-import Share from 'react-native-share';
-import messaging from '@react-native-firebase/messaging';
-
+import React, {useCallback, useRef, useMemo} from 'react';
+import {Linking, Vibration, SafeAreaView, StyleSheet} from 'react-native';
 import HapticFeedback from 'react-native-haptic-feedback';
-import {getModel, getDeviceId} from 'react-native-device-info';
+import {WebView, WebViewMessageEvent} from 'react-native-webview';
 import type {ShouldStartLoadRequest} from 'react-native-webview/lib/WebViewTypes';
-
-import {WebView, type WebViewMessageEvent} from 'react-native-webview';
 import {uri, agentSelector} from './src/constants/app';
+import {handleShare} from './src/libs/handleShare';
+import {Nullable} from './src/typing';
+import {getDeviceInfoAndPostToWeb} from './src/libs/getDeviceInfo';
 
-type Nullable<TData> = TData | null;
+interface MessageData {
+  type: string;
+  link?: string;
+  number?: string;
+}
 
-const AppInner = () => {
+const HAPTIC_OPTIONS = {
+  enableVibrateFallback: true,
+  ignoreAndroidSystemSettings: false,
+};
+
+const AppInner: React.FC = () => {
   const webviewRef = useRef<Nullable<WebView>>(null);
 
-  const onGetMessage = useCallback(async (event: WebViewMessageEvent) => {
-    try {
-      const data = JSON.parse(event.nativeEvent.data);
+  const messageHandlers = useMemo(
+    () => ({
+      share: ({link}: MessageData) => link && handleShare(link),
+      callPhone: ({number}: MessageData) =>
+        number && Linking.openURL(`tel:${number}`),
+      sendTextMessage: ({number}: MessageData) =>
+        number && Linking.openURL(`sms:${number}`),
+      vibrate: () => Vibration.vibrate(),
+      haptic: () => HapticFeedback.trigger('impactLight', HAPTIC_OPTIONS),
+      getDeviceInfo: () => getDeviceInfoAndPostToWeb(webviewRef),
+      openExternalLink: ({link}: MessageData) => link && Linking.openURL(link),
+    }),
+    [],
+  );
 
-      switch (data.type) {
-        case 'getDeviceInfo':
-          if (!messaging().isDeviceRegisteredForRemoteMessages) {
-            await messaging().registerDeviceForRemoteMessages();
-          }
-          const platform =
-            Platform.OS === 'android' ? getModel() : getDeviceId(); // https://gist.github.com/adamawolf/3048717
-          const fcmToken = await messaging().getToken();
-          webviewRef.current?.postMessage(
-            JSON.stringify({
-              name: 'deviceInfo',
-              fcmToken,
-              platform,
-            }),
-          );
-          break;
-        case 'share':
-          (async () => {
-            try {
-              await Share.open({
-                url: data.link,
-              });
-            } catch (err) {
-              console.log(err);
-            }
-          })();
-          break;
-        case 'callPhone':
-          Linking.openURL(`tel:${data.number}`);
-          break;
-        case 'sendTextMessage':
-          Linking.openURL(`sms:${data.number}`);
-          break;
-        case 'openExternalLink':
-          Linking.openURL(data.link);
-          break;
-        case 'haptic':
-          HapticFeedback.trigger('impactLight', {
-            enableVibrateFallback: true,
-            ignoreAndroidSystemSettings: false,
-          });
-          break;
-        case 'vibrate':
-          Vibration.vibrate();
-          break;
-        default:
-          break;
+  const onGetMessage = useCallback(
+    (event: WebViewMessageEvent) => {
+      try {
+        const data: MessageData = JSON.parse(event.nativeEvent.data);
+        const handler =
+          messageHandlers[data.type as keyof typeof messageHandlers];
+        handler?.(data);
+      } catch (error) {
+        console.error('Error processing message:', error);
       }
-    } catch (error) {
-      console.warn('error in receiving data');
-    }
-  }, []);
+    },
+    [messageHandlers],
+  );
 
   const onShouldStartLoadWithRequest = useCallback(
     (request: ShouldStartLoadRequest) => {
@@ -95,13 +67,14 @@ const AppInner = () => {
       <WebView
         source={{uri}}
         bounces={false}
-        userAgent={agentSelector}
-        webviewDebuggingEnabled={true}
+        hideKeyboardAccessoryView
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
         onMessage={onGetMessage}
         onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+        webviewDebuggingEnabled={__DEV__}
         ref={webviewRef}
+        userAgent={agentSelector}
       />
     </SafeAreaView>
   );
@@ -110,6 +83,7 @@ const AppInner = () => {
 const styles = StyleSheet.create({
   safeAreaView: {
     flex: 1,
+    backgroundColor: '#141517',
   },
 });
 
