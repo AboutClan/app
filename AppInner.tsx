@@ -83,7 +83,6 @@ const AppInner: React.FC = () => {
 const styles = StyleSheet.create({
   safeAreaView: {
     flex: 1,
-    backgroundColor: '#141517',
   },
 });
 

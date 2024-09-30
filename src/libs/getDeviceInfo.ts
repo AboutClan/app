@@ -17,6 +17,7 @@ export const getDeviceInfoAndPostToWeb = async (
   webviewRef: React.RefObject<Nullable<WebView>>,
 ) => {
   const deviceInfo = await getDeviceInfo();
+  console.log('deviceInfo:', deviceInfo);
   webviewRef.current?.postMessage(
     JSON.stringify({
       name: 'deviceInfo',
