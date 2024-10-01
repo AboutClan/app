@@ -8,16 +8,15 @@ const getDeviceInfo = async () => {
   if (!messaging().isDeviceRegisteredForRemoteMessages) {
     await messaging().registerDeviceForRemoteMessages();
   }
-  const platform = Platform.OS === 'android' ? getModel() : getDeviceId();
+  const deviceId = Platform.OS === 'android' ? getModel() : getDeviceId();
   const fcmToken = await messaging().getToken();
-  return {platform, fcmToken};
+  return {deviceId, fcmToken};
 };
 
 export const getDeviceInfoAndPostToWeb = async (
   webviewRef: React.RefObject<Nullable<WebView>>,
 ) => {
   const deviceInfo = await getDeviceInfo();
-  console.log('deviceInfo:', deviceInfo);
   webviewRef.current?.postMessage(
     JSON.stringify({
       name: 'deviceInfo',
