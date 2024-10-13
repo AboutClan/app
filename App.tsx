@@ -1,10 +1,22 @@
 import React, {useEffect, useCallback, useRef, useMemo} from 'react';
-import {SafeAreaView, StyleSheet, Linking, Vibration} from 'react-native';
+import {
+  SafeAreaView,
+  StyleSheet,
+  Linking,
+  // Platform,
+  Vibration,
+} from 'react-native';
 
 import {WebView, type WebViewMessageEvent} from 'react-native-webview';
 import type {ShouldStartLoadRequest} from 'react-native-webview/lib/WebViewTypes';
 
 import SplashScreen from 'react-native-splash-screen';
+
+import firebase from '@react-native-firebase/app';
+import messaging from '@react-native-firebase/messaging';
+import type {ReactNativeFirebase} from '@react-native-firebase/app';
+import PushNotification, {Importance} from 'react-native-push-notification';
+import PushNotificationIOS from '@react-native-community/push-notification-ios';
 
 type Nullable<TData> = TData | null;
 interface MessageData {
@@ -20,11 +32,91 @@ const splashScreenDelay = 1000;
 //   ignoreAndroidSystemSettings: false,
 // };
 
+const firebaseConfig = {
+  apiKey: 'AIzaSyBYFfGRL7IGfGCJCX8eQeZlVxankigGsQA',
+  authDomain: 'about-db519.firebaseapp.com',
+  projectId: 'about-db519',
+  storageBucket: 'about-db519.appspot.com',
+  messagingSenderId: '116979215697',
+  appId: '1:116979215697:web:00de4dd16d0f84b76ef770',
+  measurementId: 'G-LPZ00B1RLW',
+} as ReactNativeFirebase.FirebaseAppOptions;
+
 const appConfig = {
   uri: 'https://about-aboutclub20s-projects.vercel.app',
   agentSelector: 'about_club_app',
   pushNotificationSelector: 'about_club_app_push_notification_all',
 };
+
+const findDeviceInfo = async () => {
+  if (!messaging().isDeviceRegisteredForRemoteMessages) {
+    await messaging().registerDeviceForRemoteMessages();
+  }
+  // const deviceId = Platform.OS === 'android' ? getModel() : getDeviceId();
+  const deviceId = 'hi';
+  const fcmToken = await messaging().getToken();
+  return {deviceId, fcmToken};
+};
+
+const receiveDeviceInfoToWebview = async (
+  webviewRef: React.RefObject<Nullable<WebView>>,
+) => {
+  const deviceInfo = await findDeviceInfo();
+  webviewRef.current?.postMessage(
+    JSON.stringify({
+      name: 'deviceInfo',
+      ...deviceInfo,
+    }),
+  );
+};
+
+const configurePushNotifications = () => {
+  messaging().setBackgroundMessageHandler(async remoteMessage => {
+    console.log('Message handled in the background!', remoteMessage);
+  });
+
+  PushNotification.configure({
+    onRegister: token => {
+      console.log('TOKEN:', token);
+    },
+    onNotification: notification => {
+      if (notification.userInteraction) {
+        console.log('notification:', notification);
+      }
+      notification.finish(PushNotificationIOS.FetchResult.NoData);
+    },
+    onRegistrationError: (err: Error) => {
+      console.error('Push notification registration error:', err);
+    },
+    permissions: {
+      alert: true,
+      badge: true,
+      sound: true,
+    },
+    popInitialNotification: true,
+    requestPermissions: false,
+  });
+
+  PushNotification.createChannel(
+    {
+      channelId: appConfig.pushNotificationSelector,
+      channelName: '앱 전반',
+      channelDescription: '앱 실행하는 알림',
+      soundName: 'default',
+      importance: Importance.HIGH,
+      vibrate: true,
+    },
+    (created: boolean) => {
+      console.log(
+        `createChannel ${appConfig.pushNotificationSelector} returned '${created}'`,
+      );
+    },
+  );
+};
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
 
 function Section(): JSX.Element {
   const webviewRef = useRef<Nullable<WebView>>(null);
@@ -38,7 +130,7 @@ function Section(): JSX.Element {
         number && Linking.openURL(`sms:${number}`),
       vibrate: () => Vibration.vibrate(),
       // haptic: () => HapticFeedback.trigger('impactLight', hapticConfig),
-      // getDeviceInfo: () => receiveDeviceInfoToWebview(webviewRef),
+      getDeviceInfo: () => receiveDeviceInfoToWebview(webviewRef),
       openExternalLink: ({link}: MessageData) => link && Linking.openURL(link),
     }),
     [],
@@ -89,7 +181,7 @@ function App(): JSX.Element {
   // const {isOffline} = useNetworkStatus();
 
   useEffect(() => {
-    // configurePushNotifications();
+    configurePushNotifications();
 
     const splashTimer = setTimeout(() => {
       SplashScreen.hide();
