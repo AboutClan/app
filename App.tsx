@@ -54,23 +54,20 @@ const appConfig = {
   pushNotificationSelector: 'about_club_app_push_notification_all',
 };
 
-const findDeviceInfo = async () => {
-  if (!messaging().isDeviceRegisteredForRemoteMessages) {
-    await messaging().registerDeviceForRemoteMessages();
-  }
-  const deviceId = Platform.OS === 'android' ? getModel() : getDeviceId();
-  const fcmToken = await messaging().getToken();
-  return {deviceId, fcmToken};
-};
-
 const receiveDeviceInfoToWebview = async (
   webviewRef: React.RefObject<Nullable<WebView>>,
 ) => {
-  const deviceInfo = await findDeviceInfo();
+  if (!messaging().isDeviceRegisteredForRemoteMessages) {
+    await messaging().registerDeviceForRemoteMessages();
+  }
+  const fcmToken = await messaging().getToken();
+  const deviceId = Platform.OS === 'android' ? getModel() : getDeviceId();
+
   webviewRef.current?.postMessage(
     JSON.stringify({
       name: 'deviceInfo',
-      ...deviceInfo,
+      fcmToken,
+      deviceId,
     }),
   );
 };
@@ -81,25 +78,32 @@ const configurePushNotifications = () => {
   });
 
   PushNotification.configure({
+    // (optional) 토큰이 생성될 때 실행된다(토큰은 서버에 등록할 때 쓸 수 있음)
     onRegister: token => {
       console.log('TOKEN:', token);
     },
+    // (reguired) 리모트 노티를 수신하거나, 열었거나 로컬 노티를 열었을 때 실행
     onNotification: notification => {
-      if (notification.userInteraction) {
-        console.log('notification:', notification);
+      console.log('NOTIFICATION:', notification);
+      if (notification.message || notification.data.message) {
+        // console.log('notification:', notification);
       }
-      notification.finish(PushNotificationIOS.FetchResult.NoData);
+      notification.finish(PushNotificationIOS.FetchResult.NoData); // For IOS
     },
     onRegistrationError: (err: Error) => {
       console.error('Push notification registration error:', err);
     },
+    // IOS ONLY (optional): defaul: all - Permissions to register
     permissions: {
       alert: true,
       badge: true,
       sound: true,
     },
-    popInitialNotification: true,
+    // 권한 요청
     requestPermissions: false,
+    // Should the initial notification be popped automatically
+    // default: true
+    popInitialNotification: true,
   });
 
   PushNotification.createChannel(
