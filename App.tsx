@@ -1,16 +1,22 @@
-import React, {useEffect, useCallback, useRef, useMemo} from 'react';
+import React, {useState, useEffect, useCallback, useRef, useMemo} from 'react';
 import {
+  View,
   SafeAreaView,
   StyleSheet,
   Linking,
-  // Platform,
+  Platform,
   Vibration,
 } from 'react-native';
 
+import NetInfo from '@react-native-community/netinfo';
+import {getModel, getDeviceId} from 'react-native-device-info';
+
+import Share from 'react-native-share';
+import SplashScreen from 'react-native-splash-screen';
+import HapticFeedback from 'react-native-haptic-feedback';
+
 import {WebView, type WebViewMessageEvent} from 'react-native-webview';
 import type {ShouldStartLoadRequest} from 'react-native-webview/lib/WebViewTypes';
-
-import SplashScreen from 'react-native-splash-screen';
 
 import firebase from '@react-native-firebase/app';
 import messaging from '@react-native-firebase/messaging';
@@ -27,10 +33,10 @@ interface MessageData {
 
 const splashScreenDelay = 1000;
 
-// const hapticConfig = {
-//   enableVibrateFallback: true,
-//   ignoreAndroidSystemSettings: false,
-// };
+const hapticConfig = {
+  enableVibrateFallback: true,
+  ignoreAndroidSystemSettings: false,
+};
 
 const firebaseConfig = {
   apiKey: 'AIzaSyBYFfGRL7IGfGCJCX8eQeZlVxankigGsQA',
@@ -52,8 +58,7 @@ const findDeviceInfo = async () => {
   if (!messaging().isDeviceRegisteredForRemoteMessages) {
     await messaging().registerDeviceForRemoteMessages();
   }
-  // const deviceId = Platform.OS === 'android' ? getModel() : getDeviceId();
-  const deviceId = 'hi';
+  const deviceId = Platform.OS === 'android' ? getModel() : getDeviceId();
   const fcmToken = await messaging().getToken();
   return {deviceId, fcmToken};
 };
@@ -114,6 +119,44 @@ const configurePushNotifications = () => {
   );
 };
 
+const handleShare = async (link: string) => {
+  try {
+    await Share.open({url: link});
+  } catch (err) {
+    console.error('Error sharing:', err);
+  }
+};
+
+const useNetworkStatus = () => {
+  const [isOffline, setIsOffline] = useState(false);
+
+  const checkNetworkStatus = useCallback(async () => {
+    try {
+      const state = await NetInfo.fetch();
+      setIsOffline(!state.isConnected);
+      if (!state.isConnected) {
+        console.log('User internet is offline');
+      }
+    } catch (error) {
+      console.error('Error checking network status:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkNetworkStatus();
+
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsOffline(!state.isConnected);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [checkNetworkStatus]);
+
+  return {isOffline, checkNetworkStatus};
+};
+
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
@@ -123,13 +166,13 @@ function Section(): JSX.Element {
 
   const messageHandlers = useMemo(
     () => ({
-      // share: ({link}: MessageData) => link && handleShare(link),
+      share: ({link}: MessageData) => link && handleShare(link),
       callPhone: ({number}: MessageData) =>
         number && Linking.openURL(`tel:${number}`),
       sendTextMessage: ({number}: MessageData) =>
         number && Linking.openURL(`sms:${number}`),
       vibrate: () => Vibration.vibrate(),
-      // haptic: () => HapticFeedback.trigger('impactLight', hapticConfig),
+      haptic: () => HapticFeedback.trigger('impactLight', hapticConfig),
       getDeviceInfo: () => receiveDeviceInfoToWebview(webviewRef),
       openExternalLink: ({link}: MessageData) => link && Linking.openURL(link),
     }),
@@ -178,7 +221,7 @@ function Section(): JSX.Element {
 }
 
 function App(): JSX.Element {
-  // const {isOffline} = useNetworkStatus();
+  const {isOffline} = useNetworkStatus();
 
   useEffect(() => {
     configurePushNotifications();
@@ -192,9 +235,9 @@ function App(): JSX.Element {
     };
   }, []);
 
-  // if (isOffline) {
-  //   return <View />;
-  // }
+  if (isOffline) {
+    return <View />;
+  }
 
   return (
     <SafeAreaView style={styles.safeAreaView}>
