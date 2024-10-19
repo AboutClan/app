@@ -46,6 +46,9 @@ target '어바웃' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
+  pod 'Firebase/Analytics'
+  pod 'Firebase/Messaging'
+
   target '어바웃Tests' do
     inherit! :complete
     # Pods for testing
