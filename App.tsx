@@ -49,7 +49,7 @@ const firebaseConfig = {
 } as ReactNativeFirebase.FirebaseAppOptions;
 
 const appConfig = {
-  uri: 'https://about-aboutclub20s-projects.vercel.app',
+  uri: 'https://studyabout.herokuapp.com',
   agentSelector: 'about_club_app',
   pushNotificationSelector: 'about_club_app_push_notification_all',
 };
