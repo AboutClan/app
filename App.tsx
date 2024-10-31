@@ -6,6 +6,7 @@ import {
   Linking,
   Platform,
   Vibration,
+  BackHandler,
 } from 'react-native';
 
 import NetInfo from '@react-native-community/netinfo';
@@ -167,6 +168,23 @@ if (!firebase.apps.length) {
 
 function Section(): JSX.Element {
   const webviewRef = useRef<Nullable<WebView>>(null);
+  const backAction = () => {
+    if (webviewRef.current) {
+      webviewRef.current.postMessage(
+        JSON.stringify({
+          name: 'backAction',
+        }),
+      );
+      return true;
+    }
+  };
+
+  useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () =>
+      BackHandler.removeEventListener('hardwareBackPress', backAction);
+  }, []);
 
   const messageHandlers = useMemo(
     () => ({
