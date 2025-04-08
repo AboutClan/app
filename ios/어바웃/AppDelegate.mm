@@ -52,6 +52,7 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
   self.initialProps = @{};
   UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
   center.delegate = self;
+
   BOOL ret = [super application:application didFinishLaunchingWithOptions:launchOptions];
   if (ret == YES)
   { 

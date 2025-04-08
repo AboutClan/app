@@ -7,6 +7,7 @@ import {
   Platform,
   Vibration,
   BackHandler,
+  ActivityIndicator,
 } from 'react-native';
 
 import NetInfo from '@react-native-community/netinfo';
@@ -32,7 +33,7 @@ interface MessageData {
   number?: string;
 }
 
-const splashScreenDelay = 1000;
+const splashScreenDelay = 2000;
 
 const hapticConfig = {
   enableVibrateFallback: true,
@@ -50,7 +51,7 @@ const firebaseConfig = {
 } as ReactNativeFirebase.FirebaseAppOptions;
 
 const appConfig = {
-  uri: 'https://studyabout.herokuapp.com',
+  uri: 'https://study-about.club/',
   agentSelector: 'about_club_app',
   pushNotificationSelector: 'about_club_app_push_notification_all',
 };
@@ -233,11 +234,17 @@ function Section(): JSX.Element {
       userAgent={appConfig.agentSelector}
       webviewDebuggingEnabled={__DEV__}
       bounces={false}
+      startInLoadingState
       showsVerticalScrollIndicator={false}
       showsHorizontalScrollIndicator={false}
       hideKeyboardAccessoryView
       onMessage={onGetMessage}
       onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+      renderLoading={() => (
+        <View style={styles.loadingIndicator}>
+          <ActivityIndicator color={'#d1d1d1'} />
+        </View>
+      )}
     />
   );
 }
@@ -269,24 +276,17 @@ function App(): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
   safeAreaView: {
     flex: 1,
+  },
+  loadingIndicator: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
