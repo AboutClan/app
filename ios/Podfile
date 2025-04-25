@@ -25,6 +25,17 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
+# hermes.framework 관련 설정 추가
+pre_install do |installer|
+  installer.pod_targets.each do |pod|
+    if pod.name.eql?('hermes-engine')
+      def pod.build_type
+        Pod::BuildType.static_library
+      end
+    end
+  end
+end
+
 target '어바웃' do
   config = use_native_modules!
   use_modular_headers!
@@ -35,7 +46,8 @@ target '어바웃' do
   use_react_native!(
     :path => config[:reactNativePath],
     # Hermes is now enabled by default. Disable by setting this flag to false.
-    :hermes_enabled => flags[:hermes_enabled],
+    # :hermes_enabled => flags[:hermes_enabled],
+    :hermes_enabled => false,
     :fabric_enabled => flags[:fabric_enabled],
     # Enables Flipper.
     #
@@ -62,5 +74,12 @@ target '어바웃' do
       :mac_catalyst_enabled => false
     )
     __apply_Xcode_12_5_M1_post_install_workaround(installer)
+    
+    # 비트코드 비활성화 설정 추가
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['ENABLE_BITCODE'] = 'NO'
+      end
+    end
   end
 end
