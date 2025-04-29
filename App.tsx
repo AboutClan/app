@@ -54,6 +54,7 @@ const appConfig = {
   uri: 'https://study-about.club/',
   agentSelector: 'about_club_app',
   pushNotificationSelector: 'about_club_app_push_notification_all',
+  originWhitelist: ['intent', 'https', 'kakaolink'],
 };
 
 const receiveDeviceInfoToWebview = async (
@@ -218,8 +219,15 @@ function Section(): JSX.Element {
 
   const onShouldStartLoadWithRequest = useCallback(
     (request: ShouldStartLoadRequest) => {
-      if (request.url.includes('open.kakao.com')) {
-        Linking.openURL(request.url);
+      if (
+        request.url.includes('kakaolink') ||
+        request.url.includes('pf.kakao.com') ||
+        request.url.includes('open.kakao.com') ||
+        request.url.includes('youtube.com/watch')
+      ) {
+        Linking.openURL(request.url)
+          .then(() => {})
+          .catch(error => console.log(error));
         return false;
       }
       return true;
@@ -232,6 +240,7 @@ function Section(): JSX.Element {
       ref={webviewRef}
       source={{uri: appConfig.uri}}
       userAgent={appConfig.agentSelector}
+      originWhitelist={appConfig.originWhitelist}
       webviewDebuggingEnabled={__DEV__}
       bounces={false}
       startInLoadingState
@@ -240,6 +249,7 @@ function Section(): JSX.Element {
       hideKeyboardAccessoryView
       onMessage={onGetMessage}
       onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+      onContentProcessDidTerminate={() => webviewRef.current?.reload()}
       renderLoading={() => (
         <View style={styles.loadingIndicator}>
           <ActivityIndicator color={'#d1d1d1'} />
