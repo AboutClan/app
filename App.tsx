@@ -223,6 +223,7 @@ function Section(): JSX.Element {
         request.url.includes('kakaolink') ||
         request.url.includes('pf.kakao.com') ||
         request.url.includes('open.kakao.com') ||
+        request.url.includes('invite.kakao.com') ||
         request.url.includes('youtube.com/watch')
       ) {
         Linking.openURL(request.url)
