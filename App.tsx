@@ -199,6 +199,7 @@ function Section(): JSX.Element {
       haptic: () => HapticFeedback.trigger('impactLight', hapticConfig),
       getDeviceInfo: () => receiveDeviceInfoToWebview(webviewRef),
       openExternalLink: ({link}: MessageData) => link && Linking.openURL(link),
+      exitApp: () => BackHandler.exitApp(),
     }),
     [],
   );
@@ -207,6 +208,7 @@ function Section(): JSX.Element {
     (event: WebViewMessageEvent) => {
       try {
         const data: MessageData = JSON.parse(event.nativeEvent.data);
+        console.log('data:', data);
         const handler =
           messageHandlers[data.type as keyof typeof messageHandlers];
         handler?.(data);
