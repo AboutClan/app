@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23094" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
-    <device id="retina6_3" orientation="portrait" appearance="light"/>
+    <device id="retina6_7" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23084"/>
@@ -14,18 +14,20 @@
             <objects>
                 <viewController id="01J-lp-oVM" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
-                        <rect key="frame" x="0.0" y="0.0" width="402" height="874"/>
+                        <rect key="frame" x="0.0" y="0.0" width="430" height="932"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Image2" translatesAutoresizingMaskIntoConstraints="NO" id="iET-mw-bxM">
-                                <rect key="frame" x="184.33333333333334" y="434.33333333333331" width="33.333333333333343" height="33.333333333333314"/>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Image" adjustsImageSizeForAccessibilityContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Qat-6O-bIk">
+                                <rect key="frame" x="-67" y="-107.33333333333331" width="564" height="1146.6666666666667"/>
                             </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
-                            <constraint firstItem="iET-mw-bxM" firstAttribute="centerY" secondItem="Bcu-3y-fUS" secondAttribute="centerY" id="ChN-N2-mNq"/>
-                            <constraint firstItem="iET-mw-bxM" firstAttribute="centerX" secondItem="Bcu-3y-fUS" secondAttribute="centerX" id="IE9-AT-pI8"/>
+                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="HRg-oo-fNb"/>
+                            <constraint firstItem="Qat-6O-bIk" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="dBz-VH-7yW"/>
+                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="dEY-fT-dLs"/>
+                            <constraint firstItem="Qat-6O-bIk" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="ydr-le-r6m"/>
                         </constraints>
                     </view>
                 </viewController>
@@ -35,7 +37,7 @@
         </scene>
     </scenes>
     <resources>
-        <image name="Image2" width="33.333332061767578" height="33.333332061767578"/>
+        <image name="Image" width="564" height="1146.6666259765625"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>

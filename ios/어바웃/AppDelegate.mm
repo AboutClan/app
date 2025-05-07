@@ -53,12 +53,10 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
   UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
   center.delegate = self;
 
-  BOOL ret = [super application:application didFinishLaunchingWithOptions:launchOptions];
-  if (ret == YES)
-  { 
-    [RNSplashScreen show];
-  }
-  return ret;
+  [super application:application didFinishLaunchingWithOptions:launchOptions];
+  [RNSplashScreen show];
+  
+  return YES;
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge

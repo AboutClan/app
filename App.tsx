@@ -219,14 +219,7 @@ function Section(): JSX.Element {
 
   const onShouldStartLoadWithRequest = useCallback(
     (request: ShouldStartLoadRequest) => {
-      if (
-        request.url.includes('kakaolink') ||
-        request.url.includes('pf.kakao.com') ||
-        request.url.includes('kapi.kakao.com') ||
-        request.url.includes('open.kakao.com') ||
-        request.url.includes('invite.kakao.com') ||
-        request.url.includes('youtube.com/watch')
-      ) {
+      if (request.url.includes('youtube.com/watch')) {
         Linking.openURL(request.url)
           .then(() => {})
           .catch(error => console.log(error));
@@ -290,6 +283,7 @@ function App(): JSX.Element {
 const styles = StyleSheet.create({
   safeAreaView: {
     flex: 1,
+    backgroundColor: 'white',
   },
   loadingIndicator: {
     position: 'absolute',
