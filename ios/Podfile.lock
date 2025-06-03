@@ -518,6 +518,8 @@ PODS:
     - FirebaseCoreExtension (= 10.20.0)
     - React-Core
     - RNFBApp
+  - RNPermissions (3.10.1):
+    - React-Core
   - RNReactNativeHapticFeedback (2.3.3):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
@@ -576,6 +578,7 @@ DEPENDENCIES:
   - "RNFBAnalytics (from `../node_modules/@react-native-firebase/analytics`)"
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBMessaging (from `../node_modules/@react-native-firebase/messaging`)"
+  - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNShare (from `../node_modules/react-native-share`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -688,6 +691,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-firebase/app"
   RNFBMessaging:
     :path: "../node_modules/@react-native-firebase/messaging"
+  RNPermissions:
+    :path: "../node_modules/react-native-permissions"
   RNReactNativeHapticFeedback:
     :path: "../node_modules/react-native-haptic-feedback"
   RNShare:
@@ -754,6 +759,7 @@ SPEC CHECKSUMS:
   RNFBAnalytics: c79cf8da7d0bbbad0e0cc233402d2cadc4a694b9
   RNFBApp: a3e139715386fe79a09c387f2dbeb6890eb05b39
   RNFBMessaging: a65862d8eba03cb6c838241bd328166504996894
+  RNPermissions: 4e3714e18afe7141d000beae3755e5b5fb2f5e05
   RNReactNativeHapticFeedback: 35ab91df9e7a1e4513806e3c091293c97fe38c83
   RNShare: d2c6199782e17ad63a600858ccca63e4a380bbc0
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
