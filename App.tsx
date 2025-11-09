@@ -211,6 +211,44 @@ function Section(): JSX.Element {
     }
   };
 
+  const handleDeepLink = useCallback((url: string) => {
+    console.log('📱 Deep link received:', url);
+
+    try {
+      const parsed = new URL(url);
+      // 예: about20s://open/page?id=123&type=club
+      const path = parsed.pathname; // "/page"
+      const params = Object.fromEntries(parsed.searchParams.entries());
+
+      webviewRef.current?.postMessage(
+        JSON.stringify({
+          name: 'deeplink',
+          path,
+          params,
+        }),
+      );
+    } catch (err) {
+      console.error('Deep link parsing error:', err);
+    }
+  }, []);
+
+  // 앱이 처음 실행될 때, 또는 실행 중 링크 열릴 때
+  useEffect(() => {
+    const getInitial = async () => {
+      const url = await Linking.getInitialURL();
+      if (url) {
+        handleDeepLink(url);
+      }
+    };
+    getInitial();
+
+    const sub = Linking.addEventListener('url', ({url}) => handleDeepLink(url));
+
+    return () => {
+      sub.remove();
+    };
+  }, [handleDeepLink]);
+
   const handleNavigationStateChange = (navState: WebViewNavigation) => {
     const {url, loading} = navState;
 
