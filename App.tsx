@@ -215,10 +215,31 @@ function Section(): JSX.Element {
     console.log('📱 Deep link received:', url);
 
     try {
-      const parsed = new URL(url);
-      // 예: about20s://open/page?id=123&type=club
-      const path = parsed.pathname; // "/page"
-      const params = Object.fromEntries(parsed.searchParams.entries());
+      // about20s://group/110?param=value 형식 파싱
+      // URL API의 host가 React Native에서 제대로 동작하지 않으므로 regex 사용
+      const match = url.match(/^about20s:\/\/(.+?)(\?.*)?$/);
+      
+      if (!match) {
+        console.error('Invalid deep link format:', url);
+        return;
+      }
+
+      const pathAndQuery = match[1]; // "group/110"
+      const queryString = match[2] || ''; // "?param=value" or ""
+      
+      const path = '/' + pathAndQuery;
+      
+      // Query parameters 파싱
+      const params: Record<string, string> = {};
+      if (queryString) {
+        const searchParams = new URLSearchParams(queryString);
+        searchParams.forEach((value, key) => {
+          params[key] = value;
+        });
+      }
+
+      console.log('📱 Parsed path:', path);
+      console.log('📱 Parsed params:', params);
 
       webviewRef.current?.postMessage(
         JSON.stringify({
@@ -234,17 +255,25 @@ function Section(): JSX.Element {
 
   // 앱이 처음 실행될 때, 또는 실행 중 링크 열릴 때
   useEffect(() => {
+    console.log('🔧 Setting up deep link listeners...');
+    
     const getInitial = async () => {
       const url = await Linking.getInitialURL();
+      console.log('🔧 Initial URL:', url || 'null');
       if (url) {
         handleDeepLink(url);
       }
     };
     getInitial();
 
-    const sub = Linking.addEventListener('url', ({url}) => handleDeepLink(url));
+    console.log('🔧 Adding URL event listener...');
+    const sub = Linking.addEventListener('url', ({url}) => {
+      console.log('🔧 URL event received:', url);
+      handleDeepLink(url);
+    });
 
     return () => {
+      console.log('🔧 Removing URL event listener...');
       sub.remove();
     };
   }, [handleDeepLink]);
