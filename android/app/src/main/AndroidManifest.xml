@@ -59,15 +59,12 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
 
-        <!-- 앱 스킴 (about20s://open/page) -->
+        <!-- 앱 스킴 (about20s://*) - 모든 경로 허용 -->
         <intent-filter android:label="DeepLink">
             <action android:name="android.intent.action.VIEW" />
             <category android:name="android.intent.category.DEFAULT" />
             <category android:name="android.intent.category.BROWSABLE" />
-            <data
-              android:scheme="about20s"
-              android:host="open"
-              android:pathPrefix="/page" />
+            <data android:scheme="about20s" />
         </intent-filter>
 
       </activity>
