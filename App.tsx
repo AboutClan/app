@@ -199,6 +199,8 @@ if (!firebase.apps.length) {
 function Section(): JSX.Element {
   const webviewRef = useRef<Nullable<WebView>>(null);
   const [gestureEnabled, setGestureEnabled] = useState(false);
+  const [isWebViewReady, setIsWebViewReady] = useState(false);
+  const pendingDeepLinkRef = useRef<string | null>(null);
 
   const backAction = () => {
     if (webviewRef.current) {
@@ -211,7 +213,7 @@ function Section(): JSX.Element {
     }
   };
 
-  const handleDeepLink = useCallback((url: string) => {
+  const sendDeepLinkToWebView = useCallback((url: string) => {
     console.log('📱 Deep link received:', url);
 
     try {
@@ -241,17 +243,37 @@ function Section(): JSX.Element {
       console.log('📱 Parsed path:', path);
       console.log('📱 Parsed params:', params);
 
-      webviewRef.current?.postMessage(
-        JSON.stringify({
-          name: 'deeplink',
-          path,
-          params,
-        }),
-      );
+      const message = JSON.stringify({
+        name: 'deeplink',
+        path,
+        params,
+      });
+
+      console.log('📱 Sending message to webview:', message);
+      webviewRef.current?.postMessage(message);
     } catch (err) {
       console.error('Deep link parsing error:', err);
     }
   }, []);
+
+  const handleDeepLink = useCallback((url: string) => {
+    if (isWebViewReady) {
+      console.log('📱 WebView is ready, processing deep link immediately');
+      sendDeepLinkToWebView(url);
+    } else {
+      console.log('📱 WebView not ready, queuing deep link:', url);
+      pendingDeepLinkRef.current = url;
+    }
+  }, [isWebViewReady, sendDeepLinkToWebView]);
+
+  // 웹뷰에서 메시지를 받았을 때 (웹뷰가 준비되었다는 신호)
+  useEffect(() => {
+    if (isWebViewReady && pendingDeepLinkRef.current) {
+      console.log('📱 WebView ready! Processing pending deep link:', pendingDeepLinkRef.current);
+      sendDeepLinkToWebView(pendingDeepLinkRef.current);
+      pendingDeepLinkRef.current = null;
+    }
+  }, [isWebViewReady, sendDeepLinkToWebView]);
 
   // 앱이 처음 실행될 때, 또는 실행 중 링크 열릴 때
   useEffect(() => {
@@ -344,6 +366,10 @@ function Section(): JSX.Element {
       getDeviceInfo: handleFcmToken,
       openExternalLink: ({link}: MessageData) => link && Linking.openURL(link),
       exitApp: () => BackHandler.exitApp(),
+      webviewReady: () => {
+        console.log('📱 WebView is ready!');
+        setIsWebViewReady(true);
+      },
     }),
     [],
   );
