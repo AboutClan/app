@@ -28,7 +28,14 @@ import PushNotification, {Importance} from 'react-native-push-notification';
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
 
 import {getModel, getDeviceId} from 'react-native-device-info';
-import {check, request, PERMISSIONS, RESULTS} from 'react-native-permissions';
+import {
+  check,
+  request,
+  PERMISSIONS,
+  RESULTS,
+  checkNotifications,
+  requestNotifications,
+} from 'react-native-permissions';
 
 type Nullable<TData> = TData | null;
 interface MessageData {
@@ -93,10 +100,8 @@ const checkNotificationPermission = async () => {
     const resultForIOS = await messaging().hasPermission();
     return resultForIOS;
   } else {
-    const resultForAndroid = await check(
-      PERMISSIONS.ANDROID.POST_NOTIFICATIONS,
-    );
-    return resultForAndroid;
+    const {status} = await checkNotifications();
+    return status;
   }
 };
 
@@ -105,10 +110,8 @@ const requestNotificationPermission = async () => {
     const resultForIOS = await messaging().requestPermission();
     return resultForIOS;
   } else {
-    const resultForAndroid = await request(
-      PERMISSIONS.ANDROID.POST_NOTIFICATIONS,
-    );
-    return resultForAndroid;
+    const {status} = await requestNotifications(['alert', 'sound', 'badge']);
+    return status;
   }
 };
 

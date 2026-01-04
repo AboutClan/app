@@ -3,10 +3,13 @@ package com.about.studyaboutclubapp;
 import android.app.Application;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
+import com.facebook.react.ReactHost;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
+import com.facebook.react.defaults.DefaultReactHost;
 import com.facebook.react.defaults.DefaultReactNativeHost;
+import com.facebook.react.soloader.OpenSourceMergedSoMapping;
 import com.facebook.soloader.SoLoader;
 import java.util.List;
 
@@ -50,13 +53,20 @@ public class MainApplication extends Application implements ReactApplication {
   }
 
   @Override
+  public ReactHost getReactHost() {
+    return DefaultReactHost.getDefaultReactHost(getApplicationContext(), getReactNativeHost());
+  }
+
+  @Override
   public void onCreate() {
     super.onCreate();
-    SoLoader.init(this, /* native exopackage */ false);
+    try {
+      SoLoader.init(this, OpenSourceMergedSoMapping.INSTANCE);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to init SoLoader", e);
+    }
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
-      // If you opted-in for the New Architecture, we load the native entry point for this app.
       DefaultNewArchitectureEntryPoint.load();
     }
-    ReactNativeFlipper.initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
   }
 }
