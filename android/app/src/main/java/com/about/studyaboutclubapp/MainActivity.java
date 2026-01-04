@@ -1,5 +1,7 @@
 package com.about.studyaboutclubapp;
 
+import android.content.Intent; 
+
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
@@ -37,4 +39,10 @@ public class MainActivity extends ReactActivity {
     SplashScreen.show(this);
     super.onCreate(null);
   }
+
+  @Override
+  public void onNewIntent(Intent intent) {
+  super.onNewIntent(intent);
+  setIntent(intent);
+}
 }
