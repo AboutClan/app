@@ -1,7 +1,6 @@
 import React, {useState, useEffect, useCallback, useRef, useMemo} from 'react';
 import {
   View,
-  SafeAreaView,
   StyleSheet,
   Linking,
   Platform,
@@ -9,6 +8,7 @@ import {
   BackHandler,
   ActivityIndicator,
 } from 'react-native';
+import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 
 import Share from 'react-native-share';
 import NetInfo from '@react-native-community/netinfo';
@@ -205,7 +205,7 @@ function Section(): JSX.Element {
   const [isWebViewReady, setIsWebViewReady] = useState(false);
   const pendingDeepLinkRef = useRef<string | null>(null);
 
-  const backAction = () => {
+  const backAction = useCallback(() => {
     if (webviewRef.current) {
       webviewRef.current.postMessage(
         JSON.stringify({
@@ -214,7 +214,8 @@ function Section(): JSX.Element {
       );
       return true;
     }
-  };
+    return false;
+  }, []);
 
   const sendDeepLinkToWebView = useCallback((url: string) => {
     console.log('📱 Deep link received:', url);
@@ -223,7 +224,7 @@ function Section(): JSX.Element {
       // about20s://group/110?param=value 형식 파싱
       // URL API의 host가 React Native에서 제대로 동작하지 않으므로 regex 사용
       const match = url.match(/^about20s:\/\/(.+?)(\?.*)?$/);
-      
+
       if (!match) {
         console.error('Invalid deep link format:', url);
         return;
@@ -231,9 +232,9 @@ function Section(): JSX.Element {
 
       const pathAndQuery = match[1]; // "group/110"
       const queryString = match[2] || ''; // "?param=value" or ""
-      
+
       const path = '/' + pathAndQuery;
-      
+
       // Query parameters 파싱
       const params: Record<string, string> = {};
       if (queryString) {
@@ -259,20 +260,26 @@ function Section(): JSX.Element {
     }
   }, []);
 
-  const handleDeepLink = useCallback((url: string) => {
-    if (isWebViewReady) {
-      console.log('📱 WebView is ready, processing deep link immediately');
-      sendDeepLinkToWebView(url);
-    } else {
-      console.log('📱 WebView not ready, queuing deep link:', url);
-      pendingDeepLinkRef.current = url;
-    }
-  }, [isWebViewReady, sendDeepLinkToWebView]);
+  const handleDeepLink = useCallback(
+    (url: string) => {
+      if (isWebViewReady) {
+        console.log('📱 WebView is ready, processing deep link immediately');
+        sendDeepLinkToWebView(url);
+      } else {
+        console.log('📱 WebView not ready, queuing deep link:', url);
+        pendingDeepLinkRef.current = url;
+      }
+    },
+    [isWebViewReady, sendDeepLinkToWebView],
+  );
 
   // 웹뷰에서 메시지를 받았을 때 (웹뷰가 준비되었다는 신호)
   useEffect(() => {
     if (isWebViewReady && pendingDeepLinkRef.current) {
-      console.log('📱 WebView ready! Processing pending deep link:', pendingDeepLinkRef.current);
+      console.log(
+        '📱 WebView ready! Processing pending deep link:',
+        pendingDeepLinkRef.current,
+      );
       sendDeepLinkToWebView(pendingDeepLinkRef.current);
       pendingDeepLinkRef.current = null;
     }
@@ -281,7 +288,7 @@ function Section(): JSX.Element {
   // 앱이 처음 실행될 때, 또는 실행 중 링크 열릴 때
   useEffect(() => {
     console.log('🔧 Setting up deep link listeners...');
-    
+
     const getInitial = async () => {
       const url = await Linking.getInitialURL();
       console.log('🔧 Initial URL:', url || 'null');
@@ -315,7 +322,7 @@ function Section(): JSX.Element {
     }
   };
 
-  const handleFcmToken = async () => {
+  const handleFcmToken = useCallback(async () => {
     if (!messaging().isDeviceRegisteredForRemoteMessages) {
       await messaging().registerDeviceForRemoteMessages();
     }
@@ -331,9 +338,9 @@ function Section(): JSX.Element {
         platform: Platform.OS,
       }),
     );
-  };
+  }, []);
 
-  const handleCheckPermission = async () => {
+  const handleCheckPermission = useCallback(async () => {
     const authStatus = await checkNotificationPermission();
     const enabled =
       Platform.OS === 'android'
@@ -355,7 +362,7 @@ function Section(): JSX.Element {
         await handleFcmToken();
       }
     }
-  };
+  }, [handleFcmToken]);
 
   const messageHandlers = useMemo(
     () => ({
@@ -408,12 +415,13 @@ function Section(): JSX.Element {
   useEffect(() => {
     handleCheckPermission();
 
-    BackHandler.addEventListener('hardwareBackPress', backAction);
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
 
-    return () =>
-      BackHandler.removeEventListener('hardwareBackPress', backAction);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    return () => backHandler.remove();
+  }, [handleCheckPermission, backAction]);
 
   return (
     <WebView
@@ -459,9 +467,11 @@ function App(): JSX.Element {
   }
 
   return (
-    <SafeAreaView style={styles.safeAreaView}>
-      <Section />
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.safeAreaView}>
+        <Section />
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
