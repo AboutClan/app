@@ -1,0 +1,21 @@
+diff --git a/node_modules/@react-native/community-cli-plugin/dist/commands/start/runServer.js b/node_modules/@react-native/community-cli-plugin/dist/commands/start/runServer.js
+index 9150f39..dde6302 100644
+--- a/node_modules/@react-native/community-cli-plugin/dist/commands/start/runServer.js
++++ b/node_modules/@react-native/community-cli-plugin/dist/commands/start/runServer.js
+@@ -149,11 +149,11 @@ async function runServer(_argv, cliConfig, args) {
+     secure: args.https,
+     secureCert: args.cert,
+     secureKey: args.key,
+-    unstable_extraMiddleware: [
+-      communityMiddleware,
+-      _middleware.indexPageMiddleware,
+-      middleware,
+-    ],
++   unstable_extraMiddleware: [
++  communityMiddleware,
++  _middleware.indexPageMiddleware,
++  middleware,
++].filter(Boolean),
+     websocketEndpoints: {
+       ...communityWebsocketEndpoints,
+       ...websocketEndpoints,
