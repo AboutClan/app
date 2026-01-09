@@ -56,8 +56,8 @@ import {
    [UPDATE] Force Update Config
 =========================== */
 // ✅ 너가 바꿀 값
-const FORCE_UPDATE_VERSION_ANDROID = '999.0.0'; // [EDIT ME]
-const FORCE_UPDATE_VERSION_IOS = '999.0.0'; // [EDIT ME]
+const FORCE_UPDATE_VERSION_ANDROID = '1.3.10'; // [EDIT ME]
+const FORCE_UPDATE_VERSION_IOS = '1.3.10'; // [EDIT ME]
 
 // Android
 const ANDROID_STORE_URL = 'market://details?id=com.about.studyaboutclubapp';
@@ -556,13 +556,16 @@ function Section({
 
     const fcmToken = await messaging().getToken();
     const deviceId = Platform.OS === 'android' ? getModel() : getDeviceId();
-
+    const appVersion = DeviceInfo.getVersion(); // "1.3.9"
+    const buildNumber = DeviceInfo.getBuildNumber(); // "139" 같은 값
     webviewRef.current?.postMessage(
       JSON.stringify({
         name: 'deviceInfo',
         fcmToken,
         deviceId,
         platform: Platform.OS,
+        appVersion, // ✅ 추가
+        buildNumber, // ✅ (선택) 추가
       }),
     );
   }, []);
@@ -853,7 +856,7 @@ const stylesUpdate = StyleSheet.create({
   title: {
     fontSize: 16, // 크기 살짝 키움
     fontWeight: '700',
-    color: '#424242;',
+    color: '#424242',
     marginBottom: 20,
     textAlign: 'center', // 제목 중앙 정렬
   },
