@@ -57,7 +57,7 @@ import {
 =========================== */
 // ✅ 너가 바꿀 값
 const FORCE_UPDATE_VERSION_ANDROID = '1.3.10'; // [EDIT ME]
-const FORCE_UPDATE_VERSION_IOS = '1.3.10'; // [EDIT ME]
+const FORCE_UPDATE_VERSION_IOS = '1.1.1'; // [EDIT ME]
 
 // Android
 const ANDROID_STORE_URL = 'market://details?id=com.about.studyaboutclubapp';
