@@ -31,7 +31,7 @@ import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import NetInfo from '@react-native-community/netinfo';
 import HapticFeedback from 'react-native-haptic-feedback';
 import Share from 'react-native-share';
-import SplashScreen from 'react-native-splash-screen';
+import SplashScreen from 'react-native-splash-screen';x
 
 import {WebView, type WebViewMessageEvent} from 'react-native-webview';
 import type {
@@ -56,7 +56,7 @@ import {
    [UPDATE] Force Update Config
 =========================== */
 // ✅ 너가 바꿀 값
-const FORCE_UPDATE_VERSION_ANDROID = '1.3.10'; // [EDIT ME]
+const FORCE_UPDATE_VERSION_ANDROID = '1.3.12'; // [EDIT ME]
 const FORCE_UPDATE_VERSION_IOS = '1.1.1'; // [EDIT ME]
 
 // Android
