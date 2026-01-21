@@ -42,7 +42,7 @@ import {
    Force Update Config
 =========================== */
 // ✅ 너가 바꿀 값
-const FORCE_UPDATE_VERSION_ANDROID = '1.3.12'; // [EDIT ME]
+const FORCE_UPDATE_VERSION_ANDROID = '1.3.15'; // [EDIT ME]
 const FORCE_UPDATE_VERSION_IOS = '1.1.2'; // [EDIT ME]
 
 const ANDROID_STORE_URL = 'market://details?id=com.about.studyaboutclubapp';
@@ -68,6 +68,25 @@ const compareSemver = (a: string, b: string) => {
     if (va < vb) return -1;
   }
   return 0;
+};
+
+const toAboutSchemeIfWebUrl = (url: string) => {
+  // https://study-about.club/gather/123?x=1 -> about20s://gather/123?x=1
+  if (typeof url !== 'string') return '';
+  const s = url.trim();
+  if (!s.startsWith('https://')) return s;
+
+  // host 체크 (www 포함)
+  const hostOk =
+    s === 'https://study-about.club' ||
+    s === 'https://www.study-about.club' ||
+    s.startsWith('https://study-about.club/') ||
+    s.startsWith('https://www.study-about.club/');
+  if (!hostOk) return s;
+
+  const withoutProto = s.replace(/^https:\/\/(www\.)?study-about\.club\/?/, '');
+  const pathAndQuery = withoutProto; // already includes ?...
+  return `about20s://${pathAndQuery}`;
 };
 
 const openStore = async () => {
@@ -300,7 +319,8 @@ function Section({
   // deep link handler (stable)
   const sendDeepLinkToWebView = useCallback((url: string) => {
     try {
-      const match = url.match(/^about20s:\/\/(.+?)(\?.*)?$/);
+      const match = url.match(/^about20s:\/\/([^?]+)(\?.*)?$/);
+
       if (!match) return;
 
       const pathAndQuery = match[1];
@@ -308,7 +328,8 @@ function Section({
       const path = '/' + pathAndQuery;
 
       const params: Record<string, string> = {};
-      if (queryString) {
+
+      if (queryString && typeof URLSearchParams !== 'undefined') {
         const sp = new URLSearchParams(queryString);
         sp.forEach((value, key) => {
           params[key] = value;
@@ -329,10 +350,12 @@ function Section({
 
   const handleDeepLink = useCallback(
     (url: string) => {
+      const normalized = normalizeDeeplink(toAboutSchemeIfWebUrl(url));
+      if (!normalized) return;
       if (isWebViewReady) {
-        sendDeepLinkToWebView(url);
+        sendDeepLinkToWebView(normalized);
       } else {
-        pendingDeepLinkRef.current = url;
+        pendingDeepLinkRef.current = normalized;
       }
     },
     [isWebViewReady, sendDeepLinkToWebView],
@@ -677,7 +700,9 @@ export default function App(): JSX.Element {
         backgroundColor="white"
         translucent={false}
       />
-      <SafeAreaView edges={['top']} style={styles.safeAreaView}>
+      <SafeAreaView
+        edges={Platform.OS === 'android' ? ['top', 'bottom'] : ['top']}
+        style={styles.safeAreaView}>
         <Section onForceUpdateRequired={setForceUpdateVisible} />
         <ForceUpdateModal
           visible={forceUpdateVisible}

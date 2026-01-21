@@ -35,6 +35,21 @@
         <data android:scheme="about20s" />
       </intent-filter>
 
+<!-- study-about.club -->
+<intent-filter android:autoVerify="true">
+  <action android:name="android.intent.action.VIEW" />
+  <category android:name="android.intent.category.DEFAULT" />
+  <category android:name="android.intent.category.BROWSABLE" />
+  <data android:scheme="https" android:host="study-about.club" />
+</intent-filter><!-- www.study-about.club -->
+<intent-filter android:autoVerify="true">
+  <action android:name="android.intent.action.VIEW" />
+  <category android:name="android.intent.category.DEFAULT" />
+  <category android:name="android.intent.category.BROWSABLE" />
+  <data android:scheme="https" android:host="www.study-about.club" />
+</intent-filter>
+
+
       <!-- ✅ (추가) https://about20s.club/* 전부 앱이 가로채기 -->
       <intent-filter android:autoVerify="true">
         <action android:name="android.intent.action.VIEW" />
