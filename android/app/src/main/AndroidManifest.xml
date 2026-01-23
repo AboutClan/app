@@ -49,6 +49,15 @@
   <data android:scheme="https" android:host="www.study-about.club" />
 </intent-filter>
 
+<intent-filter android:label="KakaoLink">
+  <action android:name="android.intent.action.VIEW" />
+  <category android:name="android.intent.category.DEFAULT" />
+  <category android:name="android.intent.category.BROWSABLE" />
+  <data
+    android:scheme="kakao0ab4a527fe2b99e3c18e904244a97e20"
+    android:host="kakaolink" />
+</intent-filter>
+
 
       <!-- ✅ (추가) https://about20s.club/* 전부 앱이 가로채기 -->
       <intent-filter android:autoVerify="true">

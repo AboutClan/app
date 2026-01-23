@@ -69,24 +69,51 @@ const compareSemver = (a: string, b: string) => {
   }
   return 0;
 };
+const toAboutSchemeIfKakaoLink = (url: string) => {
+  try {
+    // kakao...://kakaolink?...path=...
+    if (!url.includes('kakaolink')) return url;
 
+    const qIndex = url.indexOf('?');
+    if (qIndex < 0) return url;
+
+    const qs = url.slice(qIndex + 1);
+    const sp = new URLSearchParams(qs);
+    const path = sp.get('path'); // encodeURIComponent 되어있음
+    if (!path) return url;
+
+    const decoded = decodeURIComponent(path); // "gather/123?x=1"
+    return decoded.startsWith('about20s://')
+      ? decoded
+      : `about20s://${decoded.replace(/^\/+/, '')}`;
+  } catch {
+    return url;
+  }
+};
 const toAboutSchemeIfWebUrl = (url: string) => {
-  // https://study-about.club/gather/123?x=1 -> about20s://gather/123?x=1
   if (typeof url !== 'string') return '';
   const s = url.trim();
   if (!s.startsWith('https://')) return s;
 
-  // host 체크 (www 포함)
   const hostOk =
     s === 'https://study-about.club' ||
     s === 'https://www.study-about.club' ||
     s.startsWith('https://study-about.club/') ||
-    s.startsWith('https://www.study-about.club/');
+    s.startsWith('https://www.study-about.club/') ||
+    // ✅ 추가
+    s === 'https://about20s.club' ||
+    s === 'https://www.about20s.club' ||
+    s.startsWith('https://about20s.club/') ||
+    s.startsWith('https://www.about20s.club/');
+
   if (!hostOk) return s;
 
-  const withoutProto = s.replace(/^https:\/\/(www\.)?study-about\.club\/?/, '');
-  const pathAndQuery = withoutProto; // already includes ?...
-  return `about20s://${pathAndQuery}`;
+  const withoutProto = s.replace(
+    /^https:\/\/(www\.)?(study-about\.club|about20s\.club)\/?/,
+    '',
+  );
+
+  return `about20s://${withoutProto}`;
 };
 
 const openStore = async () => {
@@ -350,7 +377,11 @@ function Section({
 
   const handleDeepLink = useCallback(
     (url: string) => {
-      const normalized = normalizeDeeplink(toAboutSchemeIfWebUrl(url));
+      const kakaoConverted = toAboutSchemeIfKakaoLink(url); // ✅ 추가
+      const normalized = normalizeDeeplink(
+        toAboutSchemeIfWebUrl(kakaoConverted),
+      );
+
       if (!normalized) return;
       if (isWebViewReady) {
         sendDeepLinkToWebView(normalized);
