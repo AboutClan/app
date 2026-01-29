@@ -100,13 +100,24 @@ const toAboutSchemeIfWebUrl = (url: string) => {
     s === 'https://www.study-about.club' ||
     s.startsWith('https://study-about.club/') ||
     s.startsWith('https://www.study-about.club/') ||
-    // ✅ 추가
     s === 'https://about20s.club' ||
     s === 'https://www.about20s.club' ||
     s.startsWith('https://about20s.club/') ||
     s.startsWith('https://www.about20s.club/');
 
   if (!hostOk) return s;
+
+  // ✅ 핵심: /_open?path=... 이면 목적 path를 꺼내서 about20s://{path} 로 변환
+  try {
+    const u = new URL(s);
+    if (u.pathname === '/_open') {
+      const p = u.searchParams.get('path');
+      if (p) {
+        const decoded = decodeURIComponent(p).replace(/^\/+/, '');
+        return `about20s://${decoded || 'home'}`;
+      }
+    }
+  } catch {}
 
   const withoutProto = s.replace(
     /^https:\/\/(www\.)?(study-about\.club|about20s\.club)\/?/,
@@ -346,7 +357,9 @@ function Section({
   // deep link handler (stable)
   const sendDeepLinkToWebView = useCallback((url: string) => {
     try {
-      const match = url.match(/^about20s:\/\/([^?]+)(\?.*)?$/);
+      // 기존 정규식보다 유연하게 수정: about20s:// 뒤에 슬래시가 몇 개든 상관없이 경로를 캡처합니다.
+      // 기존 푸시 알림(about20s://path)도 이 정규식을 100% 통과합니다.
+      const match = url.match(/about20s:\/\/?\/?([^?]+)(\?.*)?$/);
 
       if (!match) return;
 
@@ -355,7 +368,6 @@ function Section({
       const path = '/' + pathAndQuery;
 
       const params: Record<string, string> = {};
-
       if (queryString && typeof URLSearchParams !== 'undefined') {
         const sp = new URLSearchParams(queryString);
         sp.forEach((value, key) => {
@@ -363,13 +375,17 @@ function Section({
         });
       }
 
-      webviewRef.current?.postMessage(
-        JSON.stringify({
-          name: 'deeplink',
-          path,
-          params,
-        }),
-      );
+      // ✅ [수정 2] 웹뷰가 메시지를 확실히 처리할 수 있도록 300ms 지연 전송
+      // 앱이 꺼져 있다가 켜지는 상황에서 웹뷰 내부 라우터 준비 시간을 벌어줍니다.
+      setTimeout(() => {
+        webviewRef.current?.postMessage(
+          JSON.stringify({
+            name: 'deeplink',
+            path,
+            params,
+          }),
+        );
+      }, 300);
     } catch (err) {
       console.error('Deep link parsing error:', err);
     }
@@ -377,12 +393,12 @@ function Section({
 
   const handleDeepLink = useCallback(
     (url: string) => {
-      const kakaoConverted = toAboutSchemeIfKakaoLink(url); // ✅ 추가
-      const normalized = normalizeDeeplink(
-        toAboutSchemeIfWebUrl(kakaoConverted),
-      );
+      const webConverted = toAboutSchemeIfWebUrl(url);
+      const kakaoConverted = toAboutSchemeIfKakaoLink(webConverted);
+      const normalized = normalizeDeeplink(kakaoConverted);
 
       if (!normalized) return;
+
       if (isWebViewReady) {
         sendDeepLinkToWebView(normalized);
       } else {
@@ -391,11 +407,14 @@ function Section({
     },
     [isWebViewReady, sendDeepLinkToWebView],
   );
-
   useEffect(() => {
     if (isWebViewReady && pendingDeepLinkRef.current) {
-      sendDeepLinkToWebView(pendingDeepLinkRef.current);
-      pendingDeepLinkRef.current = null;
+      // 준비 완료 후 즉시 보내지 않고 약간의 텀을 주어 웹뷰 JS가 깨어나길 기다립니다.
+      const timer = setTimeout(() => {
+        sendDeepLinkToWebView(pendingDeepLinkRef.current!);
+        pendingDeepLinkRef.current = null;
+      }, 500);
+      return () => clearTimeout(timer);
     }
   }, [isWebViewReady, sendDeepLinkToWebView]);
 
@@ -521,11 +540,15 @@ function Section({
   useEffect(() => {
     const getInitial = async () => {
       const url = await Linking.getInitialURL();
+      console.log('[DEEPLINK][initial]', url);
       if (url) handleDeepLink(url);
     };
     getInitial();
 
-    const sub = Linking.addEventListener('url', ({url}) => handleDeepLink(url));
+    const sub = Linking.addEventListener('url', ({url}) => {
+      console.log('[DEEPLINK][event]', url);
+      handleDeepLink(url);
+    });
     return () => sub.remove();
   }, [handleDeepLink]);
 
