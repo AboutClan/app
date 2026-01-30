@@ -49,8 +49,8 @@ android {
         applicationId "com.about.studyaboutclubapp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 153
-        versionName "1.3.23"
+        versionCode 156
+        versionName "1.3.26"
     }
 
     signingConfigs {
