@@ -69,27 +69,56 @@ const compareSemver = (a: string, b: string) => {
   }
   return 0;
 };
+const safeDecode = (v: string) => {
+  try {
+    return decodeURIComponent(String(v).replace(/\+/g, '%20'));
+  } catch {
+    return String(v);
+  }
+};
+
+const getQS = (qs: string, key: string) => {
+  const m = String(qs).match(new RegExp(`(?:^|&)${key}=([^&]+)`));
+  return m?.[1] ?? null;
+};
 const toAboutSchemeIfKakaoLink = (url: string) => {
   try {
-    // kakao...://kakaolink?...path=...
+    if (typeof url !== 'string') return '';
     if (!url.includes('kakaolink')) return url;
 
     const qIndex = url.indexOf('?');
     if (qIndex < 0) return url;
 
     const qs = url.slice(qIndex + 1);
-    const sp = new URLSearchParams(qs);
-    const path = sp.get('path'); // encodeURIComponent 되어있음
-    if (!path) return url;
 
-    const decoded = decodeURIComponent(path); // "gather/123?x=1"
+    // 1) 1차 후보: dl / path
+    let target = getQS(qs, 'dl') || getQS(qs, 'path');
+
+    // 2) 없으면 "쿼리 전체를 decode"해서 다시 탐색 (androidExecutionParams 등)
+    if (!target) {
+      const decodedQS = safeDecode(qs);
+      target = getQS(decodedQS, 'dl') || getQS(decodedQS, 'path');
+    }
+
+    // 3) 최종 fallback: 강제 정규식
+    if (!target) {
+      const m = qs.match(/(?:^|&)(?:dl|path)=([^&]+)/);
+      if (m?.[1]) target = m[1];
+    }
+
+    if (!target) return url;
+
+    const decoded = safeDecode(target).replace(/^\/+/, '');
+    if (!decoded) return 'about20s://home';
+
     return decoded.startsWith('about20s://')
       ? decoded
-      : `about20s://${decoded.replace(/^\/+/, '')}`;
+      : `about20s://${decoded}`;
   } catch {
     return url;
   }
 };
+
 const toAboutSchemeIfWebUrl = (url: string) => {
   if (typeof url !== 'string') return '';
   const s = url.trim();
@@ -111,7 +140,7 @@ const toAboutSchemeIfWebUrl = (url: string) => {
   try {
     const u = new URL(s);
     if (u.pathname === '/_open') {
-      const p = u.searchParams.get('path');
+      const p = u.searchParams.get('dl') || u.searchParams.get('path');
       if (p) {
         const decoded = decodeURIComponent(p).replace(/^\/+/, '');
         return `about20s://${decoded || 'home'}`;
@@ -356,6 +385,7 @@ function Section({
 
   // deep link handler (stable)
   const sendDeepLinkToWebView = useCallback((url: string) => {
+    console.log('[RN->WV][deeplink][enter]', url); // ✅ 이 줄 추가 (match 전에)
     try {
       // 기존 정규식보다 유연하게 수정: about20s:// 뒤에 슬래시가 몇 개든 상관없이 경로를 캡처합니다.
       // 기존 푸시 알림(about20s://path)도 이 정규식을 100% 통과합니다.
@@ -368,16 +398,43 @@ function Section({
       const path = '/' + pathAndQuery;
 
       const params: Record<string, string> = {};
-      if (queryString && typeof URLSearchParams !== 'undefined') {
-        const sp = new URLSearchParams(queryString);
-        sp.forEach((value, key) => {
-          params[key] = value;
-        });
+
+      if (queryString) {
+        const qs = queryString.startsWith('?')
+          ? queryString.slice(1)
+          : queryString;
+
+        try {
+          // ✅ RN에서 forEach가 없을 수 있어서 entries()로만 순회
+          if (typeof URLSearchParams !== 'undefined') {
+            const sp = new URLSearchParams(qs);
+
+            // @ts-ignore: RN polyfill 환경 대응
+            for (const [key, value] of sp.entries()) {
+              params[String(key)] = String(value);
+            }
+          } else {
+            // fallback
+            qs.split('&').forEach(pair => {
+              const [k, v] = pair.split('=');
+              if (!k) return;
+              params[decodeURIComponent(k)] = decodeURIComponent(v ?? '');
+            });
+          }
+        } catch (e) {
+          // ✅ 혹시 URLSearchParams가 있어도 구현이 이상하면 fallback
+          qs.split('&').forEach(pair => {
+            const [k, v] = pair.split('=');
+            if (!k) return;
+            params[decodeURIComponent(k)] = decodeURIComponent(v ?? '');
+          });
+        }
       }
 
       // ✅ [수정 2] 웹뷰가 메시지를 확실히 처리할 수 있도록 300ms 지연 전송
       // 앱이 꺼져 있다가 켜지는 상황에서 웹뷰 내부 라우터 준비 시간을 벌어줍니다.
       setTimeout(() => {
+        console.log('[RN->WV][deeplink]', {url, path, params}); // ✅ 추가
         webviewRef.current?.postMessage(
           JSON.stringify({
             name: 'deeplink',
@@ -392,31 +449,41 @@ function Section({
   }, []);
 
   const handleDeepLink = useCallback(
-    (url: string) => {
-      const webConverted = toAboutSchemeIfWebUrl(url);
-      const kakaoConverted = toAboutSchemeIfKakaoLink(webConverted);
-      const normalized = normalizeDeeplink(kakaoConverted);
+    (incomingUrl: string) => {
+      const step1 = toAboutSchemeIfKakaoLink(incomingUrl);
+      const step2 = toAboutSchemeIfWebUrl(step1);
+      const normalized = normalizeDeeplink(step2);
 
-      if (!normalized) return;
+      console.log('[RN][deeplink][normalized]', {
+        incomingUrl,
+        step1,
+        step2,
+        normalized,
+        isWebViewReady,
+      });
+
+      if (!normalized.startsWith('about20s://')) return;
 
       if (isWebViewReady) {
         sendDeepLinkToWebView(normalized);
       } else {
         pendingDeepLinkRef.current = normalized;
+        console.log('[RN][deeplink][queued]', normalized);
       }
     },
     [isWebViewReady, sendDeepLinkToWebView],
   );
-  useEffect(() => {
-    if (isWebViewReady && pendingDeepLinkRef.current) {
-      // 준비 완료 후 즉시 보내지 않고 약간의 텀을 주어 웹뷰 JS가 깨어나길 기다립니다.
-      const timer = setTimeout(() => {
-        sendDeepLinkToWebView(pendingDeepLinkRef.current!);
-        pendingDeepLinkRef.current = null;
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [isWebViewReady, sendDeepLinkToWebView]);
+
+  // useEffect(() => {
+  //   if (isWebViewReady && pendingDeepLinkRef.current) {
+  //     // 준비 완료 후 즉시 보내지 않고 약간의 텀을 주어 웹뷰 JS가 깨어나길 기다립니다.
+  //     const timer = setTimeout(() => {
+  //       sendDeepLinkToWebView(pendingDeepLinkRef.current!);
+  //       pendingDeepLinkRef.current = null;
+  //     }, 500);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [isWebViewReady, sendDeepLinkToWebView]);
 
   const backAction = useCallback(() => {
     if (!webviewRef.current) return false;
@@ -509,9 +576,18 @@ function Section({
       getDeviceInfo: () => void handleFcmToken(),
       openExternalLink: ({link}: MessageData) => link && Linking.openURL(link),
       exitApp: () => BackHandler.exitApp(),
-      webviewReady: () => setIsWebViewReady(true),
+      webviewReady: () => {
+        console.log('[RN] webviewReady received');
+        setIsWebViewReady(true);
+
+        const u = pendingDeepLinkRef.current;
+        if (u) {
+          pendingDeepLinkRef.current = null;
+          sendDeepLinkToWebView(u);
+        }
+      },
     }),
-    [handleFcmToken],
+    [handleFcmToken, sendDeepLinkToWebView],
   );
 
   const onGetMessage = useCallback(
@@ -519,7 +595,9 @@ function Section({
       const raw = event?.nativeEvent?.data;
       if (!raw || typeof raw !== 'string' || raw === 'undefined') return;
 
-      let data: MessageData | null = null;
+      console.log('[WV->RN][raw]', raw); // ✅ 추가
+
+      let data: any = null;
       try {
         data = JSON.parse(raw);
       } catch (error) {
@@ -527,10 +605,12 @@ function Section({
         return;
       }
 
-      if (!data?.type) return;
+      const key = data?.type || data?.name; // ✅ 핵심: type 우선, 없으면 name
+      if (!key) return;
 
-      const handler =
-        messageHandlers[data.type as keyof typeof messageHandlers];
+      console.log('[WV->RN][parsed]', key, data); // ✅ 추가
+
+      const handler = (messageHandlers as any)[key];
       handler?.(data);
     },
     [messageHandlers],
