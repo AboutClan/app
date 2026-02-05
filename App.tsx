@@ -835,7 +835,9 @@ export default function App(): JSX.Element {
         translucent={false}
       />
       <SafeAreaView
-        edges={Platform.OS === 'android' ? ['top'] : ['top','bottom']}
+        edges={
+          Platform.OS === 'android' ? ['top', 'bottom'] : ['top', 'bottom']
+        }
         style={styles.safeAreaView}>
         <Section onForceUpdateRequired={setForceUpdateVisible} />
         <ForceUpdateModal
