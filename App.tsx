@@ -838,7 +838,7 @@ function Section({
       ref={webviewRef}
       source={{uri: appConfig.uri}}
       style={{flex: 1}} // 👈 이 줄을 추가하여 WebView가 공간을 차지하도록 합니다.
-      userAgent={appConfig.agentSelector}
+      applicationNameForUserAgent={appConfig.agentSelector}
       originWhitelist={appConfig.originWhitelist}
       webviewDebuggingEnabled={__DEV__}
       bounces={false}
