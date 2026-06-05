@@ -110,11 +110,11 @@ const toAboutSchemeIfKakaoLink = (url: string) => {
     if (!target) return url;
 
     const decoded = safeDecode(target).replace(/^\/+/, '');
-    if (!decoded) return 'about20s://home';
+    if (!decoded) return 'kagongmap://home';
 
-    return decoded.startsWith('about20s://')
+    return decoded.startsWith('kagongmap://')
       ? decoded
-      : `about20s://${decoded}`;
+      : `kagongmap://${decoded}`;
   } catch {
     return url;
   }
@@ -137,14 +137,14 @@ const toAboutSchemeIfWebUrl = (url: string) => {
 
   if (!hostOk) return s;
 
-  // ✅ 핵심: /_open?path=... 이면 목적 path를 꺼내서 about20s://{path} 로 변환
+  // ✅ 핵심: /_open?path=... 이면 목적 path를 꺼내서 kagongmap://{path} 로 변환
   try {
     const u = new URL(s);
     if (u.pathname === '/_open') {
       const p = u.searchParams.get('dl') || u.searchParams.get('path');
       if (p) {
         const decoded = decodeURIComponent(p).replace(/^\/+/, '');
-        return `about20s://${decoded || 'home'}`;
+        return `kagongmap://${decoded || 'home'}`;
       }
     }
   } catch {}
@@ -154,7 +154,7 @@ const toAboutSchemeIfWebUrl = (url: string) => {
     '',
   );
 
-  return `about20s://${withoutProto}`;
+  return `kagongmap://${withoutProto}`;
 };
 
 const openStore = async () => {
@@ -237,11 +237,11 @@ const normalizeDeeplink = (raw: unknown): string => {
 
   const unquoted = s.replace(/^['"]+|['"]+$/g, '');
 
-  if (unquoted.startsWith('/')) return `about20s://${unquoted.slice(1)}`;
-  if (unquoted.startsWith('about20s://')) return unquoted;
+  if (unquoted.startsWith('/')) return `kagongmap://${unquoted.slice(1)}`;
+  if (unquoted.startsWith('kagongmap://')) return unquoted;
 
   if (!unquoted.includes('://'))
-    return `about20s://${unquoted.replace(/^\/+/, '')}`;
+    return `kagongmap://${unquoted.replace(/^\/+/, '')}`;
 
   return unquoted;
 };
@@ -388,8 +388,8 @@ function Section({
   const sendDeepLinkToWebView = useCallback((url: string) => {
     console.log('[RN->WV][deeplink][enter]', url); // ✅ 이 줄 추가 (match 전에)
     try {
-      // 기존 정규식보다 유연하게 수정: about20s:// 뒤에 슬래시가 몇 개든 상관없이 경로를 캡처합니다.
-      // 기존 푸시 알림(about20s://path)도 이 정규식을 100% 통과합니다.
+      // 기존 정규식보다 유연하게 수정: kagongmap:// 뒤에 슬래시가 몇 개든 상관없이 경로를 캡처합니다.
+      // 기존 푸시 알림(kagongmap://path)도 이 정규식을 100% 통과합니다.
       const match = url.match(/about20s:\/\/?\/?([^?]+)(\?.*)?$/);
 
       if (!match) return;
@@ -463,7 +463,7 @@ function Section({
         isWebViewReady,
       });
 
-      if (!normalized.startsWith('about20s://')) return;
+      if (!normalized.startsWith('kagongmap://')) return;
 
       if (isWebViewReady) {
         sendDeepLinkToWebView(normalized);

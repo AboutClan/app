@@ -5,7 +5,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
     <key>CFBundleDisplayName</key>
-    <string>어바웃</string>
+    <string>카공지도</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -64,7 +64,7 @@
         <dict>
             <key>CFBundleURLSchemes</key>
             <array>
-                <string>about20s</string>
+               <string>kagongmap</string>
             </array>
         </dict>
     </array>
