@@ -588,7 +588,8 @@ function Section({
         url.startsWith('kakaopay://') ||
         url.startsWith('market://') ||
         url.startsWith('tel:') ||
-        url.startsWith('sms:');
+        url.startsWith('sms:') ||
+        url.startsWith('passapp://');
 
       if (isExternalScheme) {
         Linking.openURL(url).catch(() => {});
