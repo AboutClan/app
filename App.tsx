@@ -246,6 +246,26 @@ const normalizeDeeplink = (raw: unknown): string => {
   return unquoted;
 };
 
+const getMapWebFallback = (link: string): string | null => {
+  try {
+    const [scheme, rest = ''] = link.split('?');
+    const params = new URLSearchParams(rest);
+    if (scheme === 'nmap://search') {
+      return `https://map.naver.com/p/search/${params.get('query') ?? ''}`;
+    }
+    if (scheme === 'kakaomap://search') {
+      return `https://map.kakao.com/link/search/${params.get('q') ?? ''}`;
+    }
+    if (link.startsWith('maps://')) {
+      const q = params.get('q') ?? '';
+      return `https://maps.apple.com/?q=${q}`;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
 const handleShare = async (link: string) => {
   try {
     await Share.open({url: link});
@@ -589,7 +609,10 @@ function Section({
         url.startsWith('market://') ||
         url.startsWith('tel:') ||
         url.startsWith('sms:') ||
-        url.startsWith('passapp://');
+        url.startsWith('passapp://') ||
+        url.startsWith('nmap://') ||
+        url.startsWith('kakaomap://') ||
+        url.startsWith('maps://');
 
       if (isExternalScheme) {
         Linking.openURL(url).catch(() => {});
@@ -670,7 +693,21 @@ function Section({
       vibrate: () => Vibration.vibrate(),
       haptic: () => HapticFeedback.trigger('impactLight', appConfig.haptic),
       getDeviceInfo: () => void handleFcmToken(),
-      openExternalLink: ({link}: MessageData) => link && Linking.openURL(link),
+      openExternalLink: ({link}: MessageData) => {
+        if (!link) return;
+        const fallback = getMapWebFallback(link);
+        if (fallback) {
+          Linking.canOpenURL(link)
+            .then(canOpen =>
+              Linking.openURL(canOpen ? link : fallback).catch(() => {}),
+            )
+            .catch(() => Linking.openURL(fallback).catch(() => {}));
+          return;
+        }
+        Linking.openURL(link).catch(err =>
+          console.error('[openExternalLink] failed:', link, err),
+        );
+      },
       exitApp: () => BackHandler.exitApp(),
       webviewReady: () => {
         console.log('[RN] webviewReady received');
