@@ -4,6 +4,11 @@
   <uses-permission android:name="android.permission.VIBRATE"/>
   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
+  <!-- WebView 안의 navigator.geolocation 용. 매니페스트에 선언이 없으면
+       안드로이드가 런타임 권한 팝업 자체를 띄우지 않고 즉시 거부한다. -->
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
   <application
     android:name=".MainApplication"
     android:label="@string/app_name"

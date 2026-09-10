@@ -43,10 +43,10 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-namespace "club.about20s.cafemap"
+    namespace "com.about.studyaboutclubapp"
 
     defaultConfig {
-     applicationId "club.about20s.cafemap"
+        applicationId "com.about.studyaboutclubapp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 167
