@@ -9,6 +9,13 @@
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
+  <!-- 위치 권한을 선언하면 안드로이드가 위치 하드웨어를 "필수"로 간주해
+       GPS 없는 기기가 Play 배포 대상에서 제외된다. 위치는 부가 기능이므로
+       required="false" 로 명시해 기존 지원 기기 범위를 유지한다. -->
+  <uses-feature android:name="android.hardware.location" android:required="false" />
+  <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+  <uses-feature android:name="android.hardware.location.network" android:required="false" />
+
   <application
     android:name=".MainApplication"
     android:label="@string/app_name"
