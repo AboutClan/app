@@ -75,6 +75,9 @@
         <string>nmap</string>
         <string>kakaomap</string>
         <string>maps</string>
+        <!-- 카공지도 앱 실행. 이 항목이 없으면 canOpenURL이 항상 false를 반환해
+             설치되어 있어도 앱으로 전환되지 않는다. -->
+        <string>kagongmap</string>
     </array>
 
     <key>UILaunchStoryboardName</key>

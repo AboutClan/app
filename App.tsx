@@ -612,7 +612,11 @@ function Section({
         url.startsWith('passapp://') ||
         url.startsWith('nmap://') ||
         url.startsWith('kakaomap://') ||
-        url.startsWith('maps://');
+        url.startsWith('maps://') ||
+        // 카공지도 앱 실행(스터디 페이지의 "카공지도 바로가기").
+        // 안드로이드는 intent://로 위에서 이미 처리되므로 실질적으로 iOS용이다.
+        // 미설치면 openURL이 실패하고, 웹의 타이머가 스토어로 보낸다.
+        url.startsWith('kagongmap://');
 
       if (isExternalScheme) {
         Linking.openURL(url).catch(() => {});
