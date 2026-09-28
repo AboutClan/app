@@ -35,6 +35,7 @@ import PushNotification, {Importance} from 'react-native-push-notification';
 import DeviceInfo, {getDeviceId, getModel} from 'react-native-device-info';
 import {
   checkNotifications,
+  openSettings,
   requestNotifications,
   RESULTS,
 } from 'react-native-permissions';
@@ -659,33 +660,68 @@ function Section({
     }
   }, []);
 
+  const isPermissionEnabled = useCallback((authStatus: unknown) => {
+    return Platform.OS === 'android'
+      ? authStatus === RESULTS.GRANTED
+      : authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+  }, []);
+
   const handleCheckPermission = useCallback(async () => {
     try {
       const authStatus = await checkNotificationPermission();
 
-      const enabled =
-        Platform.OS === 'android'
-          ? authStatus === RESULTS.GRANTED
-          : authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-            authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-
-      if (enabled) {
+      if (isPermissionEnabled(authStatus)) {
         await handleFcmToken();
         return;
       }
 
       const newAuthStatus = await requestNotificationPermission();
-      const newEnabled =
-        Platform.OS === 'android'
-          ? newAuthStatus === RESULTS.GRANTED
-          : newAuthStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-            newAuthStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
-      if (newEnabled) await handleFcmToken();
+      if (isPermissionEnabled(newAuthStatus)) await handleFcmToken();
     } catch (e) {
       console.error('handleCheckPermission error:', e);
     }
-  }, [handleFcmToken]);
+  }, [handleFcmToken, isPermissionEnabled]);
+
+  /**
+   * 웹이 알림 허용을 요청할 때(스터디 신청 후 안내 등) 호출된다.
+   *
+   * 아직 물어본 적 없으면 OS 권한 창을 띄우고, 이미 거부된 상태면 JS로는 다시 물을 수
+   * 없으므로 앱 설정 화면을 연다. 어느 경우든 결과를 웹에 돌려줘서 웹이 안내 문구를
+   * 바꾸거나 FCM 토큰을 다시 등록할 수 있게 한다.
+   */
+  const handleRequestNotificationPermission = useCallback(async () => {
+    let granted = false;
+    let openedSettings = false;
+
+    try {
+      const authStatus = await checkNotificationPermission();
+
+      if (isPermissionEnabled(authStatus)) {
+        granted = true;
+      } else if (authStatus === RESULTS.BLOCKED) {
+        // 한 번 거부한 뒤에는 권한 창이 다시 뜨지 않는다. 설정으로 보낸다.
+        openedSettings = true;
+        await openSettings().catch(() => {});
+      } else {
+        const newAuthStatus = await requestNotificationPermission();
+        granted = isPermissionEnabled(newAuthStatus);
+      }
+
+      if (granted) await handleFcmToken();
+    } catch (e) {
+      console.error('handleRequestNotificationPermission error:', e);
+    }
+
+    webviewRef.current?.postMessage(
+      JSON.stringify({
+        name: 'notificationPermission',
+        granted,
+        openedSettings,
+      }),
+    );
+  }, [handleFcmToken, isPermissionEnabled]);
 
   const messageHandlers = useMemo(
     () => ({
@@ -697,6 +733,9 @@ function Section({
       vibrate: () => Vibration.vibrate(),
       haptic: () => HapticFeedback.trigger('impactLight', appConfig.haptic),
       getDeviceInfo: () => void handleFcmToken(),
+      // 웹(스터디 신청 안내 등)에서 알림 허용을 요청할 때
+      requestNotificationPermission: () =>
+        void handleRequestNotificationPermission(),
       openExternalLink: ({link}: MessageData) => {
         if (!link) return;
         const fallback = getMapWebFallback(link);
@@ -724,7 +763,7 @@ function Section({
         }
       },
     }),
-    [handleFcmToken, sendDeepLinkToWebView],
+    [handleFcmToken, handleRequestNotificationPermission, sendDeepLinkToWebView],
   );
 
   const onGetMessage = useCallback(
